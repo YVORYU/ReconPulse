@@ -1,0 +1,32 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# 扫描结果输出（自动生成，不入库）
+output/
+
+# 测试与临时文件
+*.log
+*.tmp
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+#vibcoding
+./trae
+./claude
+./opencode
