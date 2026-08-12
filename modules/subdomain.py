@@ -68,7 +68,7 @@ def brute_force(domain, directory_file, threads, timeout):
 
 def run_subdomain(url, directory_file, threads, timeout):
     info("Start subdomain mining")
-    scan_host, domain = normalize_target(url)   # 统一整理用户输入
+    scan_host, domain = normalize_target(url)   
     if not scan_host:
         critical("Failed to obtain the host name. Please enter a legal form")
         return None, []

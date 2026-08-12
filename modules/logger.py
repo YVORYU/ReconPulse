@@ -1,17 +1,17 @@
 import logging
 import colorlog
 
+
 formatter = colorlog.ColoredFormatter(
-    '%(log_color)s[%(levelname)s]%(asctime)s | %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    '%(blue)s[%(asctime)s]%(reset)s %(log_color)s[%(levelname)s]%(reset)s %(message)s',
+    datefmt='%H:%M:%S',
     log_colors={
         'DEBUG': 'cyan',
         'INFO': 'green',
         'WARNING': 'yellow',
         'ERROR': 'red',
-        'CRITICAL': 'red,bg_white',
+        'CRITICAL': 'red',
     }
-
 )
 
 logger = colorlog.getLogger("reconpulse")
@@ -22,7 +22,6 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-# 屏蔽第三方库（requests 等）的 DEBUG 日志，避免刷屏
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 def info(msg):
@@ -36,4 +35,3 @@ def error(msg):
 
 def critical(msg):
     logger.critical(msg)
-

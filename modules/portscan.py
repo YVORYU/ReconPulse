@@ -4,7 +4,6 @@ import socket
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 
-# nmap 官方 nmap-services 数据中按出现频率排序的前 1000 个 TCP 端口
 TOP_1000_PORTS = [
     80, 23, 443, 21, 22, 25, 3389, 110, 445, 139, 143, 53, 135, 3306, 8080,
     1723, 111, 995, 993, 5900, 1025, 587, 8888, 199, 1720, 465, 548, 113, 81, 6001,
@@ -118,7 +117,7 @@ def parse_ports(ports_str):
     return sorted(list(ports))
 def run_port(url, threads, timeout, ports):
     info("Start port scanning")
-    scan_host, _ = normalize_target(url)    # 统一整理用户输入，裸注册域自动补 www.
+    scan_host, _ = normalize_target(url)    
     if not scan_host:
         critical("Failed to obtain the host name. Please enter a legal form")
         return None, []
@@ -160,3 +159,44 @@ def run_port(url, threads, timeout, ports):
         f.write("\n".join(map(str, open_ports)) + "\n")
     info(f"Port scanning completed! Saved to {output_file}")
     return ip, open_ports
+
+
+def scan_one_host(host, port_list, threads, timeout):
+    try:
+        ip = socket.gethostbyname(host)
+    except socket.gaierror:
+        warn(f"Failed to resolve host, skipped: {host}")
+        return host, []
+    info(f"Scanning {host} ({ip}), {len(port_list)} ports")
+    open_ports = []
+    with ThreadPoolExecutor(max_workers=threads) as executor:
+        futures = [executor.submit(scan_port, ip, port, timeout) for port in port_list]
+        for future in as_completed(futures):
+            port = future.result()
+            if port:
+                open_ports.append(port)
+                info(f"{host}: port {port} is open")
+    open_ports.sort()
+    return host, open_ports
+
+
+def run_port_multi(hosts, threads, timeout, ports):
+    info(f"Port scanning started for {len(hosts)} hosts")
+    if not ports:
+        info("No port range specified, using nmap top-1000 ports")
+        port_list = TOP_1000_PORTS
+    else:
+        port_list = parse_ports(ports)
+    if not port_list:
+        warn("No valid ports to scan")
+        return {}
+
+    hosts = list(dict.fromkeys(hosts))  
+    host_port_map = {}
+    for host in hosts:
+        host, open_ports = scan_one_host(host, port_list, threads, timeout)
+        host_port_map[host] = open_ports
+
+    total_ports = sum(len(v) for v in host_port_map.values())
+    info(f"Port scanning finished: {total_ports} open ports across {len(hosts)} hosts")
+    return host_port_map
